@@ -49,7 +49,7 @@ class AIPlayer(Player):
         numToPlace = 0
         #implemented by students to return their next move
         if currentState.phase == SETUP_PHASE_1:    #stuff on my side
-            return [(0, 0), (4, 2), (0, 3), (0, 2), (0, 1), (1, 2), (1, 1), (1, 0), (2, 1), (2, 0), (3, 0)]
+            return [(1, 1), (6, 2), (0, 0), (1, 0), (2, 0), (0, 1), (0, 2), (1, 2), (2, 2), (0, 3), (1, 3)]
         elif currentState.phase == SETUP_PHASE_2:   #stuff on foe's side
             tunnels = getConstrList(currentState, types = (TUNNEL,))
             foeTunnel = tunnels[0] if (tunnels[0].coords[1] > 5) else tunnels[1]
@@ -114,8 +114,9 @@ class AIPlayer(Player):
           if not s.hasMoved:
             path = createPathToward(currentState, s.coords, foeTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
             return Move(MOVE_ANT, path, None)
-        if (not myInv.getQueen().hasMoved):
-          return moves[0]
+        if (not myInv.getQueen().hasMoved) and (not myInv.getQueen().coords == (0, 0)):
+          path = createPathToward(currentState, myInv.getQueen().coords, (0, 0), UNIT_STATS[QUEEN][MOVEMENT])
+          return Move(MOVE_ANT, path, None)
         if myInv.foodCount >= 1 and len(myWorkers) < 2:
           return Move(BUILD, [myHill.coords], WORKER)
         if myInv.foodCount >= 2 and len(mySoldiers) < 2:
