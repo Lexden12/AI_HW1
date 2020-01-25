@@ -90,7 +90,7 @@ class AIPlayer(Player):
         moves = listAllLegalMoves(currentState)
         numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
         foods = getConstrList(currentState, None, (FOOD,))
-        bestFood = foods[0]     #why did you name this best food? (Gabe)
+        bestFood = foods[0]   #I was using it to find the food that was closest to the tunnel. changed in smart1.py
         shortest = 1000
         for food in foods:
           dist = stepsToReach(currentState, myTunnel.coords, food.coords)
@@ -114,27 +114,24 @@ class AIPlayer(Player):
               distanceToHill = stepsToReach(currentState, w, myHill.coords)
               if distanceToTunnel > distanceToHill:
                 pathToHill = createPathToward(currentState, w.coords, myHill.coords, UNIT_STATS[WORKER][MOVEMENT])
-                pathToTunnel = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-                return Move(MOVE_ANT, pathToHill, None)
+                return Move(MOVE_ANT, self.checkPath(currentState, pathToHill, w), None)
               else:
                 pathToTunnel = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-                pathToHill = createPathToward(currentState, w.coords, myHill.coords, UNIT_STATS[WORKER][MOVEMENT])
-                return Move(MOVE_ANT, pathToTunnel, None)
-              #path = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-              #return Move(MOVE_ANT, path, None)
+                return Move(MOVE_ANT, self.checkPath(currentState, pathToTunnel, w), None)
             #Otherwise, we want to move toward the food
             else:
               distanceToFood1 = stepsToReach(currentState, w, foods[0])
               distanceToFood2 = stepsToReach(currentState, w, foods[1])
               if distanceToFood1 > distanceToFood2:
                 pathToFood = createPathToward(currentState, w.coords, foods[1].coords, UNIT_STATS[WORKER][MOVEMENT])
-                return Move(MOVE_ANT, pathToFood, None)
+                return Move(MOVE_ANT, self.checkPath(currentState, pathToFood, w), None)
               else:
                 pathToFood = createPathToward(currentState, w.coords, foods[0].coords, UNIT_STATS[WORKER][MOVEMENT])
-                return Move(MOVE_ANT, pathToFood, None)
+                return Move(MOVE_ANT, self.checkPath(currentState, pathToFood, w), None)
               
         #AI agent handling Soldiers
         mySoldiers = getAntList(currentState, me, (SOLDIER,))
+        #Sends the soldiers to the foe's tunnel to try and interrupt food collection
         for s in mySoldiers:
           if not s.hasMoved:
             path = createPathToward(currentState, s.coords, foeTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
@@ -142,12 +139,32 @@ class AIPlayer(Player):
         if (not myInv.getQueen().hasMoved) and (not myInv.getQueen().coords == (0, 0)):
           path = createPathToward(currentState, myInv.getQueen().coords, (0, 0), UNIT_STATS[QUEEN][MOVEMENT])
           return Move(MOVE_ANT, path, None)
+        #create a worker if we have enough food and we have less than 2 workers
         if myInv.foodCount >= 1 and len(myWorkers) < 2:
           return Move(BUILD, [myHill.coords], WORKER)
+        #create a soldier if we have enough food and we have less than 2 soldiers
         if myInv.foodCount >= 2 and len(mySoldiers) < 2:
           return Move(BUILD, [myHill.coords], SOLDIER)
         return Move(END, None, None)
-    
+
+    #TODO: Deal with wall collisions
+    def checkPath(self, currentState, path, w):
+      next_path = path[1::]
+      if len(next_path) == 0:
+        next_move = (w.coords[0], w.coords[1] - 1)
+        if getAntAt(currentState, next_move) is None:
+          return [w.coords, next_move]
+        next_move = (w.coords[0], w.coords[1] + 1)
+        if getAntAt(currentState, next_move) is None:
+          return [w.coords, next_move]
+        next_move = (w.coords[0] - 1, w.coords[1])
+        if getAntAt(currentState, next_move) is None:
+          return [w.coords, next_move]
+        next_move = (w.coords[0] + 1, w.coords[1])
+        if getAntAt(currentState, next_move) is None:
+          return [w.coords, next_move]
+      return path
+
     ##
     #getAttack
     #Description: Gets the attack to be made from the Player
