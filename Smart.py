@@ -84,31 +84,56 @@ class AIPlayer(Player):
         myTunnel = tunnels[1] if (tunnels[0].coords[1] > 5) else tunnels[0]
         foeTunnel = tunnels[0] if (myTunnel is tunnels[1]) else tunnels[1]
         hills = getConstrList(currentState, types = (ANTHILL,))
-        myHill = hills[1] if (hills[0].coords[1] > 5) else hills[0]
+        myHill = hills[1] if (hills[0].coords[1] > 5) else hills[0] 
         myInv = getCurrPlayerInventory(currentState)
         me = currentState.whoseTurn
         moves = listAllLegalMoves(currentState)
         numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
         foods = getConstrList(currentState, None, (FOOD,))
-        bestFood = foods[0]
+        bestFood = foods[0]     #why did you name this best food? (Gabe)
         shortest = 1000
         for food in foods:
           dist = stepsToReach(currentState, myTunnel.coords, food.coords)
           if (dist < shortest):
             self.myFood = food
             shortest = dist
+        
+        #TODO: Figure out a way for agents to go around each other. 
+        #AI agent handling workers.
         myWorkers = getAntList(currentState, me, (WORKER,))
+        #nextState = getNextStateAdversarial(currentState, )
+        #workerNumber = 0
         for w in myWorkers:
           #Make sure that we haven't already moved
           if not w.hasMoved:
             #If we are carrying food, bring it back to the tunnel
             if w.carrying:
-              path = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
-              return Move(MOVE_ANT, path, None)
+              #we must check every worker and the distance between the anthill and the tunnel. 
+              #in order to decide which one is quicker to go to. 
+              distanceToTunnel = stepsToReach(currentState, w, myTunnel.coords)
+              distanceToHill = stepsToReach(currentState, w, myHill.coords)
+              if distanceToTunnel > distanceToHill:
+                pathToHill = createPathToward(currentState, w.coords, myHill.coords, UNIT_STATS[WORKER][MOVEMENT])
+                pathToTunnel = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+                return Move(MOVE_ANT, pathToHill, None)
+              else:
+                pathToTunnel = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+                pathToHill = createPathToward(currentState, w.coords, myHill.coords, UNIT_STATS[WORKER][MOVEMENT])
+                return Move(MOVE_ANT, pathToTunnel, None)
+              #path = createPathToward(currentState, w.coords, myTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
+              #return Move(MOVE_ANT, path, None)
             #Otherwise, we want to move toward the food
             else:
-              path = createPathToward(currentState, w.coords, bestFood.coords, UNIT_STATS[WORKER][MOVEMENT])
-              return Move(MOVE_ANT, path, None)
+              distanceToFood1 = stepsToReach(currentState, w, foods[0])
+              distanceToFood2 = stepsToReach(currentState, w, foods[1])
+              if distanceToFood1 > distanceToFood2:
+                pathToFood = createPathToward(currentState, w.coords, foods[1].coords, UNIT_STATS[WORKER][MOVEMENT])
+                return Move(MOVE_ANT, pathToFood, None)
+              else:
+                pathToFood = createPathToward(currentState, w.coords, foods[0].coords, UNIT_STATS[WORKER][MOVEMENT])
+                return Move(MOVE_ANT, pathToFood, None)
+              
+        #AI agent handling Soldiers
         mySoldiers = getAntList(currentState, me, (SOLDIER,))
         for s in mySoldiers:
           if not s.hasMoved:
@@ -133,8 +158,37 @@ class AIPlayer(Player):
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        #Attack a random enemy.
+        #Will check what ants the opponent has. 
         return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
+        #myPlayerID = currentState.whoseTurn
+
+        '''
+        if myPlayerID == 0:
+            numberOfSoldiers = getAntList(currentState, 1, SOLDIER,)  #3
+            numberOfWorkers = getAntList(currentState, 1, WORKER,)   #1
+            numberOfDrones = getAntList(currentState, 1, DRONE,)    #2
+            numberOfRanged = getAntList(currentState, 1, R_SOLDIER,)    #4
+        else:
+            numberOfSoldiers = getAntList(currentState, 0, SOLDIER,)
+            numberOfWorkers = getAntList(currentState, 0, WORKER,)
+            numberOfDrones = getAntList(currentState, 0, DRONE,)
+            numberOfRanged = getAntList(currentState, 0, R_SOLDIER,)
+        '''
+
+        '''
+         if attackingAnt == SOLDIER:
+            for ant in enemyLocations:
+                if ant == QUEEN:
+                    return enemyLocations[ant]
+                elif ant == SOLDIER or DRONE:
+                    return enemyLocations[ant]
+                elif ant == R_SOLDIER or WORKER:
+                    return enemyLocations[ant]
+       '''
+
+
+
+       #return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
 
     ##
     #registerWin
