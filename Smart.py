@@ -144,13 +144,12 @@ class AIPlayer(Player):
         #put ranged soldiers next to queen; should only be 2. 
         for ant in myDrones:
           if not ant.hasMoved:
-            #if enemyAtOurBase(enemyAnts):
-              #add stuff
-              #if count %2 == 0:
-            #else:
-            path = createPathToward(currentState, ant.coords, (0, 1), UNIT_STATS[DRONE][MOVEMENT])
-          
-            return Move(MOVE_ANT, path, None)
+            if self.enemyAtOurBase(currentState, enemyAnts):
+              #create a path towards the enemy ants. 
+              print("There is an enemy at our side.")
+            else:
+              path = createPathToward(currentState, ant.coords, (0, 1), UNIT_STATS[DRONE][MOVEMENT])
+              return Move(MOVE_ANT, path, None)
             #else:
               #path = createPathToward(currentState, ant.coords, (1, 0), UNIT_STATS[DRONE][MOVEMENT])
               #count += 1
@@ -193,10 +192,14 @@ class AIPlayer(Player):
           return [w.coords, next_move]
       return path
 
-    #TODO implement this method lol
+    
     #paramater = list of enemy ants. 
-    def enemyAtOurBase(self, enemyAnts):
-      return False
+    def enemyAtOurBase(self, currentState, enemyAnts):
+      for ant in enemyAnts:
+        if ant.coords[0] <= 9 and ant.coords[1] <= 3:
+          return True
+        else:
+          return False
     
     ##
     #getAttack
