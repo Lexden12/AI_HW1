@@ -86,7 +86,10 @@ class AIPlayer(Player):
         hills = getConstrList(currentState, types = (ANTHILL,))
         myHill = hills[1] if (hills[0].coords[1] > 5) else hills[0] 
         myInv = getCurrPlayerInventory(currentState)
+        enemyInv = getEnemyInv(self, currentState)
         me = currentState.whoseTurn
+        #0-1 = |-1|, 1 - 1 - 0
+        enemy = abs(me - 1)
         moves = listAllLegalMoves(currentState)
         numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
         foods = getConstrList(currentState, None, (FOOD,))
@@ -101,7 +104,6 @@ class AIPlayer(Player):
         #TODO: Figure out a way for agents to go around each other. 
         #AI agent handling workers.
         myWorkers = getAntList(currentState, me, (WORKER,))
-        #nextState = getNextStateAdversarial(currentState, )
         #workerNumber = 0
         for w in myWorkers:
           #Make sure that we haven't already moved
@@ -131,23 +133,49 @@ class AIPlayer(Player):
               
         #AI agent handling Soldiers
         mySoldiers = getAntList(currentState, me, (SOLDIER,))
+        myDrones = getAntList(currentState, me, (DRONE,)) 
+        enemyAnts = getAntList(currentState, enemy, (WORKER, DRONE, SOLDIER, R_SOLDIER,))
         #Sends the soldiers to the foe's tunnel to try and interrupt food collection
         for s in mySoldiers:
           if not s.hasMoved:
             path = createPathToward(currentState, s.coords, foeTunnel.coords, UNIT_STATS[WORKER][MOVEMENT])
             return Move(MOVE_ANT, path, None)
+
+        #put ranged soldiers next to queen; should only be 2. 
+        for ant in myDrones:
+          if not ant.hasMoved:
+            #if enemyAtOurBase(enemyAnts):
+              #add stuff
+              #if count %2 == 0:
+            #else:
+            path = createPathToward(currentState, ant.coords, (0, 1), UNIT_STATS[DRONE][MOVEMENT])
+          
+            return Move(MOVE_ANT, path, None)
+            #else:
+              #path = createPathToward(currentState, ant.coords, (1, 0), UNIT_STATS[DRONE][MOVEMENT])
+              #count += 1
+              #return Move(MOVE_ANT, path, None)
+
+        #deal with queen
         if (not myInv.getQueen().hasMoved) and (not myInv.getQueen().coords == (0, 0)):
           path = createPathToward(currentState, myInv.getQueen().coords, (0, 0), UNIT_STATS[QUEEN][MOVEMENT])
           return Move(MOVE_ANT, path, None)
+
         #create a worker if we have enough food and we have less than 2 workers
         if myInv.foodCount >= 1 and len(myWorkers) < 2:
           return Move(BUILD, [myHill.coords], WORKER)
-        #create a soldier if we have enough food and we have less than 2 soldiers
-        if myInv.foodCount >= 2 and len(mySoldiers) < 2:
+
+        #create a drone to protect queen. 
+        if myInv.foodCount >= 2 and len(myDrones) < 1:
+          return Move(BUILD, [myHill.coords], DRONE)
+        
+        if myInv.foodCount >= 2 and len(myDrones) == 1:
           return Move(BUILD, [myHill.coords], SOLDIER)
+
         return Move(END, None, None)
 
     #TODO: Deal with wall collisions
+    #w = worker
     def checkPath(self, currentState, path, w):
       next_path = path[1::]
       if len(next_path) == 0:
@@ -165,6 +193,11 @@ class AIPlayer(Player):
           return [w.coords, next_move]
       return path
 
+    #TODO implement this method lol
+    #paramater = list of enemy ants. 
+    def enemyAtOurBase(self, enemyAnts):
+      return False
+    
     ##
     #getAttack
     #Description: Gets the attack to be made from the Player
