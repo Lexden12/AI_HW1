@@ -192,7 +192,7 @@ class AIPlayer(Player):
           return [w.coords, next_move]
       return path
 
-    
+
     #paramater = list of enemy ants. 
     def enemyAtOurBase(self, currentState, enemyAnts):
       for ant in enemyAnts:
