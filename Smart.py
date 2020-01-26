@@ -144,18 +144,16 @@ class AIPlayer(Player):
             return Move(MOVE_ANT, path, None)
 
         #put ranged soldiers next to queen; should only be 2. 
+        enemyAnt = self.enemyAtOurBase(currentState, enemyAnts)
         for ant in myDrones:
           if not ant.hasMoved:
-            if self.enemyAtOurBase(currentState, enemyAnts):
+            if enemyAnt != None:
               #create a path towards the enemy ants. 
-              print("There is an enemy at our side.")
+              path = createPathToward(currentState, ant.coords, enemyAnt.coords, UNIT_STATS[DRONE][MOVEMENT])
+              return Move(MOVE_ANT, path, None)
             else:
               path = createPathToward(currentState, ant.coords, (0, 1), UNIT_STATS[DRONE][MOVEMENT])
               return Move(MOVE_ANT, path, None)
-            #else:
-              #path = createPathToward(currentState, ant.coords, (1, 0), UNIT_STATS[DRONE][MOVEMENT])
-              #count += 1
-              #return Move(MOVE_ANT, path, None)
 
         #deal with queen
         if (not myInv.getQueen().hasMoved) and (not myInv.getQueen().coords == (0, 0)):
@@ -195,13 +193,14 @@ class AIPlayer(Player):
       return path
 
 
-    #paramater = list of enemy ants. 
+    #Method for returning an ant that is in our territory. 
+    #Paramaters 
     def enemyAtOurBase(self, currentState, enemyAnts):
       for ant in enemyAnts:
         if ant.coords[0] <= 9 and ant.coords[1] <= 3:
-          return True
+          return ant
         else:
-          return False
+          return None
     
     ##
     #getAttack
@@ -213,37 +212,8 @@ class AIPlayer(Player):
     #   enemyLocation - The Locations of the Enemies that can be attacked (Location[])
     ##
     def getAttack(self, currentState, attackingAnt, enemyLocations):
-        #Will check what ants the opponent has. 
         return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
-        #myPlayerID = currentState.whoseTurn
 
-        '''
-        if myPlayerID == 0:
-            numberOfSoldiers = getAntList(currentState, 1, SOLDIER,)  #3
-            numberOfWorkers = getAntList(currentState, 1, WORKER,)   #1
-            numberOfDrones = getAntList(currentState, 1, DRONE,)    #2
-            numberOfRanged = getAntList(currentState, 1, R_SOLDIER,)    #4
-        else:
-            numberOfSoldiers = getAntList(currentState, 0, SOLDIER,)
-            numberOfWorkers = getAntList(currentState, 0, WORKER,)
-            numberOfDrones = getAntList(currentState, 0, DRONE,)
-            numberOfRanged = getAntList(currentState, 0, R_SOLDIER,)
-        '''
-
-        '''
-         if attackingAnt == SOLDIER:
-            for ant in enemyLocations:
-                if ant == QUEEN:
-                    return enemyLocations[ant]
-                elif ant == SOLDIER or DRONE:
-                    return enemyLocations[ant]
-                elif ant == R_SOLDIER or WORKER:
-                    return enemyLocations[ant]
-       '''
-
-
-
-       #return enemyLocations[random.randint(0, len(enemyLocations) - 1)]
 
     ##
     #registerWin
