@@ -158,17 +158,17 @@ class AIPlayer(Player):
                                   UNIT_STATS[QUEEN][MOVEMENT])
           return Move(MOVE_ANT, path, None)
         #create a worker if we have enough food and we have less than 2 workers
-        if myInv.foodCount >= 1 and len(myWorkers) < 2 and
-            getAntAt(currentState, myHill.coords) == None:
+        if (myInv.foodCount >= 1 and len(myWorkers) < 2 and
+        getAntAt(currentState, myHill.coords) == None):
           return Move(BUILD, [myHill.coords], WORKER)
         #create a drone to protect queen. 
-        if myInv.foodCount >= 2 and len(myDrones) < 1 and
-            getAntAt(currentState, myHill.coords) == None:
+        if (myInv.foodCount >= 2 and len(myDrones) < 1 and
+        getAntAt(currentState, myHill.coords) == None):
           return Move(BUILD, [myHill.coords], DRONE)
         
         #create soldies to invade the enemy base
-        if myInv.foodCount >= 2 and len(myDrones) == 1 and len(mySoldiers) < 10 and
-            getAntAt(currentState, myHill.coords) == None:
+        if (myInv.foodCount >= 2 and len(myDrones) == 1 and len(mySoldiers) < 10 and
+        getAntAt(currentState, myHill.coords) == None):
           return Move(BUILD, [myHill.coords], SOLDIER)
 
         return Move(END, None, None)
